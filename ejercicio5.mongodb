@@ -1,0 +1,44 @@
+
+/*Ejercicio 5: Combinación de colecciones con $lookup
+Objetivo:
+Aprender a realizar operaciones de "join" con $lookup.
+*/
+
+use("tiendaOnline");
+
+//  Enriquecer cada documento de ventas con la información completa del producto vendido (mediante un lookup a la colección productos).
+
+db.ventas.aggregate([
+    {
+        $lookup: {
+            from: "productos",
+            localField: "producto_id",
+            foreignField: "_id",
+            as: "info_producto"
+        }
+    },
+    { $unwind: "$info_producto" },
+    {
+        $project: {
+            _id: 1,
+            "cliente.nombre": 1,
+            "info_producto.nombre": 1,
+            "info_producto.categoria": 1,
+            cantidad: 1,
+            precio_unitario: 1,
+            total: 1
+        }
+    },
+
+
+    // Calcular el total vendido por categoría de producto.
+
+    {
+        $group: {
+            _id: "$info_producto.categoria",
+            total_vendido: { $sum: "$total" }
+        }
+    },
+    { $sort: { total_vendido: -1 } }
+
+]);
