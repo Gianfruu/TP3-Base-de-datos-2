@@ -13,20 +13,26 @@ db.ventas.aggregate([
         $unwind: "$producto"
     },
     {
-        $project: {
-            "producto.nombre":1,
-            "producto.categoria":1,
-            total:1,
-            preciototal:{$multiply: ["$precio_unitario","$total"]}
-
+        $addFields: {
+          "punt_promedio": {$avg:"$producto.valoraciones.puntuacion"}
         }
     },
-    
+    {
+        $project: {
+            "producto.nombre":1,
+            categoria: "$producto.categoria",
+            total: "$total",
+            preciototal:{$multiply: ["$precio_unitario","$total"]},
+            punt_promedio: 1
+        }
+    },
     {
         $group: {
           _id: "$producto.nombre",
+          categoria:{ $first: "$categoria"},
           total: {$sum: "$total"},
-          precio_total:{$sum: "$preciototal"}
+          precio_total:{$sum: "$preciototal"},
+          puntuacion:{$avg: "$punt_promedio"},
         }
     },
     {
