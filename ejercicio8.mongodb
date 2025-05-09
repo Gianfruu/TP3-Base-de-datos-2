@@ -30,14 +30,14 @@ db.ventas.aggregate([
         $group: {
           _id: "$producto.nombre",
           categoria:{ $first: "$categoria"},
-          total: {$sum: "$total"},
+          total_vendido: {$sum: "$total"},
           precio_total:{$sum: "$preciototal"},
           puntuacion:{$avg: "$punt_promedio"},
         }
     },
     {
         $sort: {
-          total: -1
+          total_vendido: -1
         }
     },
     {
