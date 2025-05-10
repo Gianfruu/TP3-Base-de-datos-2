@@ -28,8 +28,8 @@ db.ventas.aggregate([
   {
     $lookup: {
       from: "productos",
-      let: { 
-        ctgs_compradas: "$ctgs_compradas" 
+      let: {
+        ctgs_compradas: "$ctgs_compradas"
       },
       pipeline: [
         { $match: { $expr: { $in: ["$categoria", "$$ctgs_compradas"] } } },
@@ -41,8 +41,8 @@ db.ventas.aggregate([
   {
     $lookup: {
       from: "productos",
-      let: { 
-        ctgs_compradas: "$ctgs_compradas" 
+      let: {
+        ctgs_compradas: "$ctgs_compradas"
       },
       pipeline: [
         { $match: { $expr: { $in: ["$categoria", "$$ctgs_compradas"] } } },
@@ -56,7 +56,8 @@ db.ventas.aggregate([
     $lookup: {
       from: "ventas",
       pipeline: [
-        { $group: {
+        {
+          $group: {
             _id: "$producto_id",
             total_ventas: { $sum: "$cantidad" }
           }
@@ -65,24 +66,24 @@ db.ventas.aggregate([
         { $limit: 2 }
       ],
       as: "mas_vendidos"
-  }
+    }
   },
   {
     $lookup: {
       from: "productos",
-      let: { 
+      let: {
         mas_vendidos_id: "$mas_vendidos._id",
         productos_ya_comprados: "$productos_comprados"
       },
       pipeline: [
-        { 
-          $match: { 
-            $expr: { 
+        {
+          $match: {
+            $expr: {
               $and: [
                 { $in: ["$_id", "$$mas_vendidos_id"] },
                 { $not: { $in: ["$_id", "$$productos_ya_comprados"] } }
               ]
-            } 
+            }
           }
         }
       ],
