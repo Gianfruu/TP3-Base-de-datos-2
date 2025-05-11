@@ -1,0 +1,23 @@
+
+// Ejercicio 4: Deconstrucción de arrays con $unwind
+
+
+use("tiendaOnline");
+
+
+db.productos.aggregate([  
+{
+  $unwind: "$valoraciones"                    // 1. Deconstrucción de valoraciones
+}, 
+{
+  $group:{                                    // 2. Agrupamiento por puntuacion
+    _id: "$valoraciones.puntuacion",
+    cantidad_valoraciones: { $sum: 1},        // 3. Cuenta de las valoraciones
+    items: {$push: "$nombre"}                 // 4. Opcional: elementos de la cuenta
+  }
+},
+{
+  $sort: {_id: 1}                             // 5. Ordenamiento
+}
+]);
+ 
