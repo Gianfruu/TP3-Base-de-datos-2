@@ -1,0 +1,22 @@
+db.productos.aggregate([
+  // desmenuza la coleccion de valoraciones
+  { $unwind: "$valoraciones" },
+
+  {
+    $group: {
+      _id: {
+        //los agrupa por el id y el nomrne
+        id: "$_id",
+        nombre: "$nombre"
+      },
+      //hace el promedio de las puntuaciones
+      promedioPuntuacion: { $avg: "$valoraciones.puntuacion" },
+      //suma la cnatidad de valoraciones una por una 
+      cantidadValoraciones: { $sum: 1 }
+    }
+  },
+//muestra solamente los productos que tengan 2 validaciones o mas
+  { $match: { cantidadValoraciones: { $gte: 2 } } },
+  //ordena de mayor a menor la puntuacion promedio
+  {$sort : {promedioPuntuacion : -1}}
+])

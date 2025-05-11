@@ -1,0 +1,9 @@
+use("tiendaOnline");
+db.ventas.aggregate([
+  {
+    $match: {
+      "cliente.pais": "España",
+      estado: "Entregado"
+    }
+  }
+])

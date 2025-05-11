@@ -1,0 +1,25 @@
+use("tiendaOnline");
+
+db.ventas.aggregate([
+  {
+    $match: {
+      //matchea los clientes que sean de españa
+      // y tengan el estado entregado
+      "cliente.pais": "España",
+      estado: "Entregado"
+    }
+  },
+  {
+    $group: {
+      //los agrupa por el pais del cliente
+      _id: "$cliente.pais",
+      //cuenta cantas transacciones hay
+      cantTransacciones: { $sum: 1 },
+      //suma todas las transacciones en total
+      sumTotal: { $sum: "$total" }
+    }
+  },
+  {
+    $sort: { sumTotal: 1 }
+  }
+])

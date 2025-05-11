@@ -1,0 +1,13 @@
+use("tiendaOnline");
+// filtrado basico con $match
+db.productos.aggregate([
+  {
+    //matchea a los productos que tienen 
+    // como categorias electronica y el orecio sea mas de 500
+    $match: {
+      categoria: "Electrónica",
+      precio: { $gt: 500 }
+    }
+  }
+])
+
