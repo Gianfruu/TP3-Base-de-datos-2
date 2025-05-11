@@ -1,0 +1,53 @@
+// Problema 1: Crear un pipeline que obtenga los productos más valorados (puntuación promedio más alta) 
+// con al menos 2 valoraciones.
+
+use("tiendaOnline");
+
+  db.productos.aggregate([
+
+  
+    // deconstruccion de arreglo
+  { $unwind: "$valoraciones"},            
+
+  
+  // agrupar por productos
+  {$group:                                // calculando promedio de puntuaciones              
+    {                                     // y contando puntuaciones iguales a 5                    
+      _id: "$nombre",                     
+      puntuacion_promedio: {$avg: "$valoraciones.puntuacion"},  
+      calificacion_igual_a_5: {
+        $sum: {
+          $cond: [
+            { $gte: ["$valoraciones.puntuacion", 5] }, 1, 0
+          ]
+        }
+      },
+      cantidad_valoraciones: { $sum : 1}
+    }
+  },
+
+  
+  // filtro de documentos
+  { $match: 
+    {
+      puntuacion_promedio: { $gte: 4.5 },      // promedios >= 4.5
+      cantidad_valoraciones: { $gt: 1}        // mínimo de 2 puntuaciones
+    }
+  },
+
+  
+  // orden de los documentos filtrados
+  { $sort: {puntuacion_promedio: -1, _id: 1 } },
+  
+
+  // selección de los campos a visualizar
+  {
+    $project: {
+      _id: 1,
+      puntuacion_promedio: { $round: ["$puntuacion_promedio", 2] },
+      calificacion_igual_a_5: 1,
+      cantidad_valoraciones: 1  
+    }
+  }
+    
+ ]);  

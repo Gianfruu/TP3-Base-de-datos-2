@@ -1,0 +1,59 @@
+// Ejercicio 2: Agrupación y agregación con $group
+
+use("tiendaOnline");
+
+
+  // 1. Calcular el precio promedio, máximo y mínimo por categoría de producto.
+
+  db.productos.aggregate([
+    {
+        $group: {
+        _id: "$categoria",
+        precio_promedio:  {$avg: "$precio"}, 
+        precio_maximo: { $max: "$precio"},
+        precio_minimo: { $min: "$precio"}
+      }
+    },
+
+    { $sort: { _id: 1} }
+  ]);
+
+
+
+  // 2. total de ventas por país, cantidad de transacciones y el monto total.
+
+  db.ventas.aggregate([
+  {
+    $group: {
+      _id: "$cliente.pais",
+      total_ventas: { $sum: "$total"},
+      cantidad_transacciones: {$sum: 1}
+    }
+  },
+
+  { $sort: { _id: 1 } },
+
+  {
+    $group: {
+      _id: null,
+      total_ventas: { $sum: "$total_ventas"},
+      por_paises: {
+        $push: {
+          pais: "$_id",
+          total_ventas: "$total_ventas",
+          cantidad_transacciones: "$cantidad_transacciones"
+        }
+      }
+    }
+  },
+
+  {
+    $project: {
+      _id: 0,      
+      total_ventas: 1,
+      por_paises: 1
+    }
+  }
+])
+
+ 
