@@ -1,0 +1,95 @@
+// Problema 2:
+// Crear un pipeline que obtenga las ventas totales por mes, 
+// indicando también el producto más vendido de cada mes.
+
+use("tiendaOnline");
+
+
+ db.ventas.aggregate([
+  // filtro de acuerdo al mes y año ingresados
+
+  {
+    $match: {
+      $expr: { $and:
+        [ 
+          {$eq: [{ $month: "$fecha" }, 3]}, 
+          {$eq: [{ $year: "$fecha" }, 2023]} 
+        ]
+      }
+    }
+  },
+
+  // join de colecciones para recuperar algunas características del producto
+
+  {
+    $lookup: {
+    from: "productos",
+    localField: "producto_id",
+    foreignField: "_id",
+    as: "info_producto"
+    }
+  },
+
+  // se deconstruye el arreglo "info_producto"
+  // y quedamos con los datos que deseamos analizar
+
+  {$unwind: "$info_producto"},
+
+   // agrupamos por producto, usando su id
+  // sumamos en dos de los campos 
+  // a: el total de unidades vendidas (por producto), 
+  // b: el valor de las ventas (por producto)
+  // y visualizamos el nombre del producto agrupado
+
+  {
+    $group: {
+      _id: "$producto_id",
+      total_vendidos: {$sum: "$cantidad"},
+      ventas_total: {$sum: "$total"},
+      item: { $first: "$info_producto.nombre" }
+    }
+  },
+  
+  
+  // ordenamos los resultados
+
+  {$sort:{total_vendidos: -1, ventas_total: -1}},
+
+
+  // maxCantidad será el valor de referencia para las sumatorias de ventas
+  // se ve la totalidad de los artículos vendidos (_id: null)
+  
+  {$group: {
+      _id: null,
+      referencia: { $max: "$total_vendidos" },
+      total_ingresos: {$sum: "$ventas_total"},
+      topProductos: {
+        $push: {
+          total_vendidos: "$total_vendidos",
+          suma_ingresos: "$ventas_total",
+          producto_id: "$_id",    
+          producto: "$item",
+              
+        }
+      }
+    }
+  }
+  ,
+
+
+  // se filtra comparando contra la referencia 
+
+  {
+    $project: {        
+      total_ingresos: 1,
+      masVendidos: {
+        $filter: {
+          input: "$topProductos",           
+          as: "final",
+          cond: { $eq: ["$$final.total_vendidos", "$referencia"] }
+        }
+      },      
+      _id: 0
+    }
+  }
+ ]);
